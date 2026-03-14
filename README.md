@@ -4,21 +4,22 @@ Application de recherche et d'assistance basée sur des ouvrages historiques de 
 
 ## Fonctionnalités
 
-- **Sources** — Accès aux deux ouvrages historiques avec citations et liens vers Gallica
-- **Recherche** — Recherche TF-IDF dans les passages avec filtres par livre et scores de pertinence
-- **Assistant** — Résumé intelligent avec extraits cités (nécessite une clé API OpenAI)
+- **Les Livres** — Historique des deux ouvrages et de leurs auteurs
+- **Recherche IA** — Décrivez vos symptômes, l'assistant cherche dans les ouvrages et synthétise les remèdes
+- **À propos** — Mission et méthodologie
 
 ## Prérequis
 
 - Python 3.10+
-- Clé API OpenAI (optionnelle, pour l'assistant IA)
+- Clé API OpenAI (pour la synthèse IA)
 
-## Installation
+## Installation sur un nouvel appareil
 
 1. **Cloner le dépôt**
    ```bash
-   git clone https://github.com/VOTRE_USERNAME/VOTRE_REPO.git
-   cd VOTRE_REPO
+   git clone https://github.com/Christophelkhoury/BioGuide_app.git
+   cd BioGuide_app
+   git checkout changes
    ```
 
 2. **Créer un environnement virtuel**
@@ -33,15 +34,19 @@ Application de recherche et d'assistance basée sur des ouvrages historiques de 
    pip install -r requirements.txt
    ```
 
-4. **Créer la base de données** (première utilisation uniquement)
+4. **Créer la base de données** (obligatoire, ~30 min la première fois)
    ```bash
    python import_gallica.py
    ```
-   Ce script importe les données depuis Gallica et crée `phyto.db`.
+   Ce script importe les données depuis Gallica et crée `phyto.db` (~450 Mo).  
+   **Note :** Ce fichier n'est pas dans le dépôt (trop volumineux pour GitHub).
 
-5. **Configurer la clé OpenAI** (optionnel, pour l'assistant)
-   - Variable d'environnement : `set OPENAI_API_KEY=votre_cle` (Windows) ou `export OPENAI_API_KEY=votre_cle` (Linux/macOS)
-   - Ou fichier `.streamlit/secrets.toml` (ne pas committer ce fichier)
+5. **Configurer la clé OpenAI**
+   ```bash
+   copy .streamlit\secrets.toml.example .streamlit\secrets.toml   # Windows
+   # cp .streamlit/secrets.toml.example .streamlit/secrets.toml     # Linux/Mac
+   ```
+   Puis éditez `.streamlit/secrets.toml` et remplacez `VOTRE_CLE_ICI` par votre clé.
 
 ## Lancer l'application
 
@@ -49,4 +54,4 @@ Application de recherche et d'assistance basée sur des ouvrages historiques de 
 streamlit run app.py
 ```
 
-L'application s'ouvre dans le navigateur (par défaut http://localhost:8501).
+L'application s'ouvre dans le navigateur (http://localhost:8501).
