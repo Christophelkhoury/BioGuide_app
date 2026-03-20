@@ -3,7 +3,7 @@ BioGuide - Recherche avec IA (chat conversationnel)
 UI mix ancien/futur : passage des livres d'époque à l'IA moderne.
 """
 import streamlit as st
-from src.search import SearchEngine
+from src.search import SearchEngine, dedupe_passages
 from src.safety import check_red_flags, check_risk_keywords, get_red_flag_message, get_risk_notice
 from src.ui_components import (
     BOOK_INFO,
@@ -14,7 +14,12 @@ from src.ui_components import (
     clean_text_for_display,
     get_gallica_page_url,
 )
-from src.assistant_llm import extract_symptoms, synthesize_with_sources, is_llm_available
+from src.assistant_llm import (
+    extract_symptoms,
+    is_usage_followup_question,
+    synthesize_followup,
+    synthesize_with_sources,
+)
 
 # Cache search engine - pre-warmed on page load to avoid "Running..." message
 @st.cache_resource
@@ -52,6 +57,11 @@ if "chat_messages" not in st.session_state:
 
 # Pre-warm search engine cache (runs once, avoids "Running get_cached_search_engine" during chat)
 get_cached_search_engine()
+
+# Recherche additionnelle pour questions de suivi (préparation, posologie, etc.)
+_USAGE_SEARCH_SUFFIX = (
+    "préparation infusion décoction teinture posologie emploi utilisation dose prendre appliquer macération"
+)
 
 # Display chat history
 for msg in st.session_state.chat_messages:
@@ -95,42 +105,94 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
             render_warning(get_risk_notice([]), level="info")
         with st.spinner("Analyse en cours..."):
             try:
-                # 1. Extract symptoms (may fail if no API credits)
-                symptoms = extract_symptoms(prompt)
-                if not symptoms:
-                    symptoms = [prompt.strip()]
+                is_followup_turn = False
+                ctx = st.session_state.get("chat_search_context")
+                followup = bool(ctx) and is_usage_followup_question(prompt, True)
 
-                # 2. Search for each symptom
-                engine = get_cached_search_engine()
-                passages_by_symptom = {}
-                for symptom in symptoms:
-                    results = engine.search(symptom, top_k=4)
-                    passages_by_symptom[symptom] = [
-                        (book_id, page, clean_text_for_display(text))
-                        for book_id, page, text, _ in results
-                    ]
+                if followup:
+                    is_followup_turn = True
+                    # Question de suivi : réutiliser le contexte + chercher des passages orientés usage
+                    symptoms = list(ctx["symptoms"])
+                    passages_by_symptom = {
+                        k: list(v) for k, v in ctx["passages_by_symptom"].items()
+                    }
+                    engine = get_cached_search_engine()
+                    for symptom in symptoms:
+                        usage_query = f"{symptom} {_USAGE_SEARCH_SUFFIX}"
+                        results = engine.search(usage_query, top_k=4)
+                        extra = [
+                            (book_id, page, clean_text_for_display(text))
+                            for book_id, page, text, _ in results
+                        ]
+                        prev = passages_by_symptom.get(symptom, [])
+                        passages_by_symptom[symptom] = dedupe_passages(prev + extra)
 
-                # 3. Check if any results
-                total_passages = sum(len(p) for p in passages_by_symptom.values())
-                if total_passages == 0:
-                    no_remedy_msg = (
-                        "Aucun remède pertinent trouvé dans les ouvrages pour vos symptômes. "
-                        "Consultez un professionnel de santé ou les urgences (15, 112) si nécessaire."
+                    total_passages = sum(len(p) for p in passages_by_symptom.values())
+                    if total_passages == 0:
+                        no_ctx = (
+                            "Je n'ai plus de contexte sur les remèdes précédents. "
+                            "Reformulez votre symptôme pour relancer une recherche."
+                        )
+                        render_warning(no_ctx, level="info")
+                        st.session_state.chat_messages.append({
+                            "role": "assistant",
+                            "content": no_ctx,
+                            "sources": [],
+                        })
+                        st.rerun()
+
+                    prior_summary = ""
+                    for msg in reversed(st.session_state.chat_messages[:-1]):
+                        if msg["role"] == "assistant" and (msg.get("content") or "").strip():
+                            prior_summary = msg["content"].strip()
+                            break
+
+                    response, api_error = synthesize_followup(
+                        prompt,
+                        symptoms,
+                        prior_summary,
+                        passages_by_symptom,
+                        get_gallica_page_url,
                     )
-                    render_warning(no_remedy_msg, level="danger")
-                    st.session_state.chat_messages.append({
-                        "role": "assistant",
-                        "content": no_remedy_msg,
-                        "sources": [],
-                    })
-                    st.rerun()
+                else:
+                    # Nouvelle question (pas un suivi) : oublier l'ancien contexte symptômes/remèdes
+                    st.session_state.pop("chat_search_context", None)
+                    # 1. Extract symptoms (may fail if no API credits)
+                    symptoms = extract_symptoms(prompt)
+                    if not symptoms:
+                        symptoms = [prompt.strip()]
 
-                # 4. Synthesize with sources
-                response, api_error = synthesize_with_sources(
-                    symptoms,
-                    passages_by_symptom,
-                    get_gallica_page_url,
-                )
+                    # 2. Search for each symptom
+                    engine = get_cached_search_engine()
+                    passages_by_symptom = {}
+                    for symptom in symptoms:
+                        results = engine.search(symptom, top_k=4)
+                        passages_by_symptom[symptom] = [
+                            (book_id, page, clean_text_for_display(text))
+                            for book_id, page, text, _ in results
+                        ]
+
+                    # 3. Check if any results
+                    total_passages = sum(len(p) for p in passages_by_symptom.values())
+                    if total_passages == 0:
+                        no_remedy_msg = (
+                            "Aucun remède pertinent trouvé dans les ouvrages pour vos symptômes. "
+                            "Consultez un professionnel de santé ou les urgences (15, 112) si nécessaire."
+                        )
+                        render_warning(no_remedy_msg, level="danger")
+                        st.session_state.chat_messages.append({
+                            "role": "assistant",
+                            "content": no_remedy_msg,
+                            "sources": [],
+                        })
+                        st.rerun()
+
+                    # 4. Synthesize with sources
+                    response, api_error = synthesize_with_sources(
+                        symptoms,
+                        passages_by_symptom,
+                        get_gallica_page_url,
+                    )
 
                 if response:
                     st.markdown(response)
@@ -154,25 +216,35 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
                         "Extraits trouvés affichés ci-dessus."
                     )
 
-                # 5. Build sources list (unique pages)
-                seen = set()
+                # 5. Sources Gallica : uniquement pour la première réponse (symptôme), pas pour le suivi
                 sources = []
-                for symptom in symptoms:
-                    for book_id, page, _ in passages_by_symptom.get(symptom, []):
-                        key = (book_id, page)
-                        if key not in seen:
-                            seen.add(key)
-                            title = BOOK_INFO.get(book_id, {}).get("title", book_id)
-                            sources.append({
-                                "label": f"{title}, page {page}",
-                                "url": get_gallica_page_url(book_id, page),
-                            })
+                if not is_followup_turn:
+                    seen = set()
+                    for symptom in symptoms:
+                        for book_id, page, _ in passages_by_symptom.get(symptom, []):
+                            key = (book_id, page)
+                            if key not in seen:
+                                seen.add(key)
+                                title = BOOK_INFO.get(book_id, {}).get("title", book_id)
+                                sources.append({
+                                    "label": f"{title}, page {page}",
+                                    "url": get_gallica_page_url(book_id, page),
+                                })
 
                 st.session_state.chat_messages.append({
                     "role": "assistant",
                     "content": content_to_store,
                     "sources": sources,
                 })
+
+                # Contexte pour les questions de suivi (comment utiliser, préparer, etc.)
+                if response and total_passages > 0:
+                    st.session_state["chat_search_context"] = {
+                        "symptoms": list(symptoms),
+                        "passages_by_symptom": {
+                            k: list(v) for k, v in passages_by_symptom.items()
+                        },
+                    }
 
             except Exception as e:
                 st.error(f"Erreur : {e}")
