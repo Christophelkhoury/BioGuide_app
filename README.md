@@ -15,12 +15,13 @@ Application de recherche et d'assistance basée sur des ouvrages historiques de 
 
 ## Installation sur un nouvel appareil
 
-1. **Cloner le dépôt**
+1. **Cloner le dépôt** (avec [Git LFS](https://git-lfs.com) installé)
    ```bash
-   git clone https://github.com/Christophelkhoury/BioGuide_app.git
-   cd BioGuide_app
-   git checkout changes
+   git clone https://github.com/Christophelkhoury/A1.git
+   cd A1
+   git lfs pull
    ```
+   Sans `git lfs pull`, vous n’avez qu’un pointeur : la base `phyto.db` ne sera pas téléchargée.
 
 2. **Créer un environnement virtuel**
    ```bash
@@ -34,12 +35,8 @@ Application de recherche et d'assistance basée sur des ouvrages historiques de 
    pip install -r requirements.txt
    ```
 
-4. **Créer la base de données** (obligatoire, ~30 min la première fois)
-   ```bash
-   python import_gallica.py
-   ```
-   Ce script importe les données depuis Gallica et crée `phyto.db` (~450 Mo).  
-   **Note :** Ce fichier n'est pas dans le dépôt (trop volumineux pour GitHub).
+4. **Base `phyto.db`** (~450 Mo) — fournie via **Git LFS** dans le dépôt.  
+   Pour la régénérer depuis zéro (optionnel, long) : `python import_gallica.py`
 
 5. **Configurer la clé OpenAI**
    ```bash
@@ -55,3 +52,11 @@ streamlit run app.py
 ```
 
 L'application s'ouvre dans le navigateur (http://localhost:8501).
+
+## Déploiement Streamlit Cloud
+
+- **Ne commitez jamais** `.streamlit/secrets.toml` (déjà dans `.gitignore`).
+- Dans l’admin Streamlit → **Secrets**, ajoutez par exemple :
+  ```toml
+  OPENAI_API_KEY = "votre-cle"
+  ```

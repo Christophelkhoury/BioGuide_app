@@ -1,5 +1,4 @@
-# Database
-phyto.db
+# Database : phyto.db est versionné via Git LFS (ne pas ré-ignorer ici)
 
 # Python
 __pycache__/

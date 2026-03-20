@@ -15,16 +15,12 @@ st.set_page_config(page_title="BioGuide — Les Livres", layout="wide", initial_
 load_global_css(theme="rustic")
 render_top_nav("pages/1_Livres.py")
 
-# Bandeau style rideau ancien
+# Bandeau rustique (vert doux + bordure)
 st.markdown(
     """
-    <div class="rustic-curtain" style="text-align: center;">
-        <span style="color: #f5e6c8; font-family: Georgia, serif; font-size: 1.5rem; font-weight: 600;">
-            Les Livres
-        </span>
-        <p style="color: #e8dcc4; margin: 8px 0 0 0; font-size: 0.95rem;">
-            Deux trésors de la médecine populaire du XIXe siècle
-        </p>
+    <div class="rustic-banner" style="text-align: center;">
+        <div class="rustic-banner-title">Les Livres</div>
+        <p class="rustic-banner-sub" style="margin: 0;">Deux trésors de la médecine populaire du XIXe siècle</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -90,8 +86,8 @@ with st.container():
 st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
 st.markdown(
     """
-    <div class="rustic-curtain" style="text-align: center; margin-top: 24px;">
-        <p style="color: #f5e6c8; margin: 0; font-size: 1rem;">
+    <div class="rustic-banner" style="text-align: center;">
+        <p class="rustic-banner-sub" style="margin: 0;">
             Prêt à explorer ces savoirs ? Utilisez la <strong>Recherche IA</strong> pour trouver des remèdes adaptés à vos symptômes.
         </p>
     </div>

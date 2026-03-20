@@ -34,8 +34,17 @@ load_global_css(theme="hybrid")
 render_top_nav("pages/2_Recherche_avec_IA.py")
 
 st.markdown("")
-st.markdown("## Recherche avec IA")
-st.caption("Décrivez vos symptômes. L'assistant cherche dans les ouvrages et vous propose une synthèse avec les sources.")
+st.markdown(
+    """
+    <div class="hybrid-intro">
+        <h2 style="margin: 0 0 8px 0;">Recherche avec IA</h2>
+        <p style="margin: 0; color: #2d3d2f;">
+            Décrivez vos symptômes. L'assistant cherche dans les ouvrages et vous propose une synthèse avec les sources.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Initialize chat history
 if "chat_messages" not in st.session_state:

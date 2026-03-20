@@ -1,24 +1,26 @@
 """
-BioGuide - Design system healthcare premium
-Couleurs: bleu médical #3BA4F7, teal #29C7AC
+BioGuide — Design nature / bien-être (CSS uniquement côté UI).
 """
-import streamlit as st
-from typing import Optional
+import base64
 import re
+from pathlib import Path
+from typing import Optional
 
-# Design tokens
+import streamlit as st
+
+# Design tokens (badges livres — verts nature)
 COLORS = {
-    "primary": "#3BA4F7",
-    "secondary": "#29C7AC",
-    "bg_main": "#F7FBFD",
-    "bg_secondary": "#EEF6F8",
-    "bg_card": "#FFFFFF",
-    "text_main": "#1F2A37",
-    "text_secondary": "#5B6B7A",
-    "text_muted": "#8A97A6",
+    "primary": "#3d4f42",
+    "secondary": "#5f8f7a",
+    "bg_main": "#e8f2ea",
+    "bg_secondary": "#f5f0e6",
+    "bg_card": "#f5f0e6",
+    "text_main": "#2d3d2f",
+    "text_secondary": "#5a6f5c",
+    "text_muted": "#6b7d6e",
     "success": "#22C55E",
-    "warning": "#F59E0B",
-    "error": "#EF4444",
+    "warning": "#c4a574",
+    "error": "#b4534a",
 }
 
 BOOK_INFO = {
@@ -55,12 +57,39 @@ def _get_dark_mode() -> bool:
     return st.session_state.get("dark_mode", False) if "dark_mode" in st.session_state else False
 
 
+def _parchment_bg_url() -> Optional[str]:
+    """Image assets/bioguide-bg.png ou .jpg en data URL pour CSS (Streamlit)."""
+    base = Path(__file__).resolve().parent.parent / "assets"
+    for name, mime in (("bioguide-bg.png", "image/png"), ("bioguide-bg.jpg", "image/jpeg"), ("bioguide-bg.jpeg", "image/jpeg")):
+        path = base / name
+        if path.is_file():
+            try:
+                raw = path.read_bytes()
+                b64 = base64.b64encode(raw).decode("ascii")
+                return f"url(data:{mime};base64,{b64})"
+            except OSError:
+                return None
+    return None
+
+
+def _logo_data_url() -> Optional[str]:
+    """Logo assets/logo.png en data URL pour l'en-tête (toutes les pages)."""
+    path = Path(__file__).resolve().parent.parent / "assets" / "logo.png"
+    if not path.is_file():
+        return None
+    try:
+        raw = path.read_bytes()
+        b64 = base64.b64encode(raw).decode("ascii")
+        return f"data:image/png;base64,{b64}"
+    except OSError:
+        return None
+
+
 def load_global_css(dark_mode: Optional[bool] = None, theme: str = "default"):
-    """theme: default, rustic (Livres), hybrid (Recherche IA)"""
+    """theme: default (accueil / à propos), rustic (Livres), hybrid (Recherche IA)."""
     if dark_mode is None:
         dark_mode = _get_dark_mode()
 
-    # Masquer footer, sidebar et barre blanche en haut (header/decoration) qui cache les boutons
     hide_css = """
     footer { visibility: hidden; }
     [data-testid="stSidebar"] { display: none !important; }
@@ -70,92 +99,151 @@ def load_global_css(dark_mode: Optional[bool] = None, theme: str = "default"):
     #MainMenu { visibility: hidden; }
     """
 
+    bg_url = _parchment_bg_url()
+    leaf_pattern = (
+        "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E"
+        "%3Cpath fill='%233d4f42' fill-opacity='0.06' d='M5 75 Q25 35 45 55 Q35 25 70 15 Q50 40 55 75 Z'/%3E"
+        "%3Ccircle cx='65' cy='65' r='3' fill='%23c4b5a0' fill-opacity='0.35'/%3E"
+        "%3C/svg%3E\")"
+    )
+
+    if bg_url:
+        if theme == "rustic":
+            app_bg = f"""
+        .stApp, [data-testid="stAppViewContainer"] {{
+            background-color: #e8f2ea !important;
+            background-image: linear-gradient(rgba(232,242,234,0.78), rgba(232,242,234,0.88)), {bg_url} !important;
+            background-size: auto, cover !important;
+            background-position: center, center !important;
+            background-attachment: fixed !important;
+        }}"""
+        elif theme == "hybrid":
+            app_bg = f"""
+        .stApp, [data-testid="stAppViewContainer"] {{
+            background-color: #e8f2ea !important;
+            background-image: linear-gradient(135deg, rgba(232,242,234,0.75) 0%, rgba(220,235,245,0.82) 55%, rgba(232,242,234,0.88) 100%), {bg_url} !important;
+            background-size: auto, cover !important;
+            background-position: center, center !important;
+            background-attachment: fixed !important;
+        }}"""
+        else:
+            app_bg = f"""
+        .stApp, [data-testid="stAppViewContainer"] {{
+            background-color: #e8f2ea !important;
+            background-image: linear-gradient(rgba(232,242,234,0.82), rgba(232,242,234,0.9)), {bg_url} !important;
+            background-size: auto, cover !important;
+            background-position: center, center !important;
+            background-attachment: fixed !important;
+        }}"""
+    else:
+        app_bg = """
+        .stApp, [data-testid="stAppViewContainer"] {
+            background-color: #e8f2ea !important;
+            background-image: linear-gradient(180deg, rgba(232,242,234,0.97) 0%, rgba(220,232,224,0.98) 100%),
+                radial-gradient(ellipse 70% 45% at 100% 0%, rgba(196,181,160,0.22), transparent 60%),
+                radial-gradient(ellipse 50% 40% at 0% 100%, rgba(95,143,122,0.12), transparent 55%) !important;
+            background-attachment: fixed !important;
+        }"""
+
+    page_theme = ""
     if theme == "rustic":
         page_theme = """
-        .stApp, [data-testid="stAppViewContainer"], .main .block-container {
-            background: linear-gradient(135deg, #f5f0e6 0%, #e8dfd0 50%, #f0e9dc 100%) !important;
-        }
-        .main .block-container { font-family: Georgia, 'Times New Roman', serif !important; }
-        .main .block-container p, .main .block-container span, .main .block-container div,
-        .main .block-container label, [data-testid="stMarkdown"] p, [data-testid="stMarkdown"] span { color: #3d3529 !important; }
-        .rustic-card { background: #faf6e8 !important; border: 2px solid #c4a574 !important; border-radius: 4px !important;
-            box-shadow: 4px 4px 12px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(196,165,116,0.3) !important;
-            padding: 28px !important; margin: 28px 0 !important; }
-        .rustic-title { font-family: Georgia, serif !important; color: #5c4a32 !important; font-size: 1.4rem !important; }
-        .rustic-curtain { background: linear-gradient(90deg, #8b4513 0%, #a0522d 20%, #8b4513 50%, #a0522d 80%, #8b4513 100%) !important;
-            padding: 16px 20px !important; border-radius: 2px !important; margin: 24px 0 !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2) !important; }
-        a { color: #6b4e2e !important; text-decoration: underline !important; }
+        .main .block-container { background: transparent !important; }
+        .rustic-banner { background: linear-gradient(180deg, #dce8df 0%, #c8d9cc 100%) !important;
+            border: 2px solid #3d4f42 !important; border-radius: 16px !important; padding: 20px 24px !important;
+            margin: 24px 0 !important; box-shadow: 0 4px 20px rgba(61,79,66,0.12) !important; }
+        .rustic-banner .rustic-banner-title { color: #3d4f42 !important; font-size: 1.45rem !important; font-weight: 700 !important; }
+        .rustic-banner .rustic-banner-sub { color: #5a6f5c !important; font-size: 0.95rem !important; margin-top: 8px !important; }
+        .rustic-card, .bg-card { background: #f5f0e6 !important; border: 2px solid #3d4f42 !important; border-radius: 16px !important;
+            padding: 28px !important; margin: 24px 0 !important; color: #2d3d2f !important;
+            box-shadow: 0 2px 12px rgba(45,61,47,0.08) !important; }
+        .rustic-title, .bg-card h2 { color: #3d4f42 !important; font-size: 1.35rem !important; font-weight: 700 !important; }
+        .rustic-curtain { display: none !important; }
+        a { color: #3d4f42 !important; font-weight: 600 !important; }
         """
     elif theme == "hybrid":
         page_theme = """
-        .stApp, [data-testid="stAppViewContainer"] { background: linear-gradient(180deg, #f0f4f8 0%, #e8eef5 100%) !important; }
         .main .block-container { background: transparent !important; padding-bottom: 140px !important; }
-        .hybrid-card-old { background: #faf6e8 !important; border: 1px solid #c4a574 !important; border-radius: 8px !important; padding: 16px !important; margin: 12px 0 !important; font-family: Georgia, serif !important; color: #3d3529 !important; }
-        .hybrid-card-new { background: rgba(59,164,247,0.08) !important; border: 1px solid rgba(59,164,247,0.3) !important; border-radius: 12px !important; padding: 16px !important; margin: 12px 0 !important; }
+        .hybrid-intro { background: #f5f0e6 !important; border: 2px solid #3d4f42 !important; border-radius: 16px !important;
+            padding: 20px 24px !important; margin: 16px 0 24px 0 !important; color: #2d3d2f !important; }
+        .hybrid-intro h2, .hybrid-intro h3 { color: #3d4f42 !important; font-weight: 700 !important; }
+        .hybrid-glass { background: rgba(255,255,255,0.55) !important; border: 1px solid rgba(61,79,66,0.2) !important;
+            border-radius: 14px !important; backdrop-filter: blur(8px) !important; }
         .main .block-container p, .main .block-container span, .main .block-container div,
         .main .block-container label, [data-testid="stMarkdown"] p, [data-testid="stMarkdown"] span,
-        [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span { color: #1F2A37 !important; }
-        /* Style ChatGPT-like : barre fixe en bas, compacte, centrée, reste visible au scroll */
+        [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span { color: #2d3d2f !important; }
         [data-testid="stChatInput"] {
             position: fixed !important; bottom: 0 !important; left: 50% !important;
             transform: translateX(-50%) !important; width: 100% !important; max-width: 640px !important;
             padding: 16px 24px 24px !important;
-            background: linear-gradient(180deg, transparent 0%, rgba(240,244,248,0.95) 15%, #f0f4f8 100%) !important;
+            background: linear-gradient(180deg, transparent 0%, rgba(232,242,234,0.97) 25%, #e8f2ea 100%) !important;
             z-index: 999 !important;
         }
         [data-testid="stChatInput"] textarea {
             min-height: 52px !important; max-height: 120px !important;
-            border-radius: 24px !important; border: 1px solid #d1d5db !important;
+            border-radius: 20px !important; border: 2px solid #3d4f42 !important;
+            background: #f5f0e6 !important; color: #2d3d2f !important;
             padding: 14px 20px !important; font-size: 1rem !important;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+            box-shadow: 0 2px 16px rgba(61,79,66,0.12) !important;
         }
         """
-    else:
-        page_theme = ""
 
     if dark_mode:
         theme_css = """
-        .stApp { background: #0f1419; }
-        [data-testid="stAppViewContainer"] { background: #0f1419; }
-        .main .block-container { background: #0f1419; }
-        [data-testid="stSidebar"] { background: #161d26; border-right: 1px solid #2a3544; }
+        .stApp { background: #1a2420 !important; }
+        [data-testid="stAppViewContainer"] { background: #1a2420 !important; }
+        .main .block-container { background: transparent !important; }
         .main .block-container p, .main .block-container span, .main .block-container div,
         .main .block-container label, [data-testid="stMarkdown"] p, [data-testid="stMarkdown"] span,
-        [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span, [data-testid="stChatMessage"] div,
-        [data-testid="stCaptionContainer"], .stCaption { color: #e2e8f0 !important; }
-        .hero-title { color: #3BA4F7 !important; }
-        .hero-sub { color: #94a3b8 !important; }
-        .stat-card { background: #161d26; border: 1px solid #2a3544; }
-        .stat-value { color: #29C7AC !important; }
-        .stat-label { color: #94a3b8 !important; }
-        .disclaimer-box { background: #1e293b; border-left: 4px solid #F59E0B; color: #fef3c7 !important; }
-        [data-testid="stChatInput"] textarea { background: #161d26 !important; color: #e2e8f0 !important; }
-        [data-testid="stSidebar"] p, [data-testid="stSidebar"] span, [data-testid="stSidebar"] label { color: #e2e8f0 !important; }
-        [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2 { color: #3BA4F7 !important; }
-        .citation-page { color: #94a3b8 !important; }
-        a { color: #60a5fa !important; }
+        [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] span { color: #dce8df !important; }
+        .hero-title, .brand-title { color: #b8cbb8 !important; }
+        .hero-sub, .brand-slogan { color: #8fa894 !important; }
+        .stat-card { background: #2a3530 !important; border: 2px solid #4a5c52 !important; color: #dce8df !important; }
+        .stat-value { color: #c4d4c8 !important; }
+        .stat-label { color: #9aaf9f !important; }
+        .disclaimer-box { background: #2f2a28 !important; border: 2px solid #c49a9e !important; color: #e8ddd4 !important; }
+        .bg-card, .rustic-card { background: #2a3530 !important; border-color: #5f8f7a !important; color: #dce8df !important; }
+        .slogan-accent { color: #c4a574 !important; }
+        a { color: #8fbc8f !important; }
+        .citation-page { color: #9aaf9f !important; }
         """
     else:
-        theme_css = """
-        .stApp { background: #F7FBFD; }
-        [data-testid="stAppViewContainer"] { background: #F7FBFD; }
-        .main .block-container { background: #F7FBFD; }
-        [data-testid="stSidebar"] { background: #EEF6F8; border-right: 1px solid #dbeafe; }
-        .hero-title { color: #1F2A37 !important; }
-        .hero-sub { color: #5B6B7A !important; }
-        .stat-card { background: #FFFFFF; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-        .stat-value { color: #3BA4F7 !important; }
-        .stat-label { color: #5B6B7A !important; }
-        .disclaimer-box { background: #fffbeb; border-left: 4px solid #F59E0B; color: #92400e; }
-        .citation-page { color: #5B6B7A !important; }
-        /* Liens */
-        a { color: #3BA4F7 !important; }
-        /* Chat */
-        [data-testid="stChatInput"] { border-radius: 16px; }
+        theme_css = f"""
+        {app_bg}
+        .main .block-container {{
+            background: transparent !important;
+            background-image: {leaf_pattern} !important;
+            background-size: 80px 80px !important;
+        }}
+        .hero-title, .brand-title {{ color: #3d4f42 !important; }}
+        .hero-sub {{ color: #5a6f5c !important; }}
+        .brand-slogan {{ color: #5a6f5c !important; }}
+        .stat-card {{
+            background: #f5f0e6 !important; border: 2px solid #3d4f42 !important; border-radius: 16px !important;
+            box-shadow: 0 2px 10px rgba(61,79,66,0.08) !important;
+        }}
+        .stat-value {{ color: #3d4f42 !important; }}
+        .stat-label {{ color: #5a6f5c !important; }}
+        .disclaimer-box {{
+            background: #f5f0e6 !important; border: 2px solid #d4a5a8 !important; border-radius: 16px !important;
+            color: #2d3d2f !important;
+        }}
+        .section-livres {{
+            background: linear-gradient(180deg, #dce8df 0%, #d0e0d4 100%) !important;
+            border-radius: 16px !important; padding: 28px 24px !important; margin: 24px 0 !important;
+            border: 1px solid rgba(61,79,66,0.2) !important;
+        }}
+        .slogan-accent {{ color: #7d6f50 !important; }}
+        .bg-card {{ background: #f5f0e6 !important; border: 2px solid #3d4f42 !important; border-radius: 16px !important;
+            padding: 24px !important; margin: 20px 0 !important; color: #2d3d2f !important; }}
+        .bg-card h2, .bg-card h3 {{ color: #3d4f42 !important; font-weight: 700 !important; }}
+        a {{ color: #3d4f42 !important; font-weight: 600 !important; }}
+        .citation-page {{ color: #5a6f5c !important; }}
+        .main h1, .main h2, .main h3, [data-testid="stMarkdown"] h1, [data-testid="stMarkdown"] h2, [data-testid="stMarkdown"] h3 {{
+            color: #3d4f42 !important;
+        }}
         """
 
-    # Animations subtiles
     anim_css = """
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(8px); }
@@ -164,66 +252,64 @@ def load_global_css(dark_mode: Optional[bool] = None, theme: str = "default"):
         .stat-card { animation: fadeInUp 0.25s ease-out; }
     """
 
-    # Spacing: 4 8 12 16 24 32 40
     layout_css = """
         .block-container { padding: 40px 48px 48px; max-width: 960px; }
         .hero-section { text-align: center; padding: 48px 24px 40px; }
         .hero-title { font-size: 2rem; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
         .hero-sub { font-size: 1.05rem; margin-bottom: 4px; }
-        .stat-card { padding: 24px; border-radius: 16px; text-align: center; margin-bottom: 20px;
+        .stat-card { padding: 24px; text-align: center; margin-bottom: 20px;
                      transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,164,247,0.12); }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(61,79,66,0.14) !important; }
         .stat-value { font-size: 1.75rem; font-weight: 700; margin-bottom: 4px; }
         .stat-label { font-size: 0.9rem; }
-        .content-card { background: #FFFFFF; border-radius: 16px; padding: 24px; margin: 28px 0;
-                       box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e5e7eb; }
         .section-spacer { margin: 40px 0; }
+        .brand-logo {
+            max-height: 110px;
+            width: auto;
+            margin: 0 auto 14px auto;
+            display: block;
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(61, 79, 66, 0.18);
+            object-fit: contain;
+        }
     """
 
-    # Top nav: grands boutons visibles, bien dégagés (barre blanche masquée)
     nav_css = """
         .block-container { padding-top: 32px !important; overflow: visible !important; }
         .block-container > div:first-child { margin-bottom: 20px !important; overflow: visible !important; }
         .block-container > div:nth-child(2) { margin-bottom: 28px !important; overflow: visible !important; }
         .block-container > div:nth-child(2) [data-testid="column"] { padding: 0 10px !important; overflow: visible !important; }
         .block-container > div:nth-child(2) [data-testid="column"] .stButton button {
-            padding: 22px 28px !important; font-size: 1.2rem !important; font-weight: 700 !important;
-            min-height: 56px !important; border: 2px solid rgba(0,0,0,0.12) !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important; color: white !important;
+            padding: 20px 24px !important; font-size: 1.05rem !important; font-weight: 600 !important;
+            min-height: 52px !important;
+            background: #f5f0e6 !important; color: #3d4f42 !important;
+            border: 2px solid #3d4f42 !important; border-radius: 14px !important;
+            box-shadow: 0 2px 8px rgba(61,79,66,0.08) !important;
         }
-        .block-container > div:nth-child(2) [data-testid="column"]:nth-child(1) .stButton button {
-            background: #3BA4F7 !important; border-color: #2d8ad9 !important;
-        }
-        .block-container > div:nth-child(2) [data-testid="column"]:nth-child(2) .stButton button {
-            background: #29C7AC !important; border-color: #1fa88e !important;
-        }
-        .block-container > div:nth-child(2) [data-testid="column"]:nth-child(3) .stButton button {
-            background: #8B5CF6 !important; border-color: #7c3aed !important;
+        .block-container > div:nth-child(2) [data-testid="column"] .stButton button[kind="primary"] {
+            background: #3d4f42 !important; color: #f5f0e6 !important;
+            border-color: #2d3d2f !important;
         }
         .block-container > div:nth-child(2) [data-testid="column"] .stButton button:hover {
-            box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important; transform: translateY(-2px) !important;
-            filter: brightness(1.08);
+            box-shadow: 0 4px 14px rgba(61,79,66,0.18) !important; transform: translateY(-2px) !important;
+            filter: none !important;
         }
     """
 
-    # Buttons: primary blue, subtle animations
     button_css = """
         [data-testid="stButton"] button, .stButton button {
             transition: all 0.2s cubic-bezier(0.4,0,0.2,1) !important;
-            border-radius: 12px !important;
+            border-radius: 14px !important;
         }
         [data-testid="stButton"] button:hover, .stButton button:hover {
             transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(59,164,247,0.25) !important;
-        }
-        [data-testid="stButton"] button:active, .stButton button:active {
-            transform: translateY(0) !important;
+            box-shadow: 0 4px 12px rgba(61,79,66,0.15) !important;
         }
         [data-testid="stButton"] button[kind="primary"], .stButton button[kind="primary"] {
-            background: #3BA4F7 !important; border: none !important;
+            background: #3d4f42 !important; color: #f5f0e6 !important; border: 2px solid #2d3d2f !important;
         }
-        [data-testid="stButton"] button[kind="primary"]:hover {
-            box-shadow: 0 4px 16px rgba(59,164,247,0.35) !important;
+        [data-testid="stButton"] button[kind="secondary"], .stButton button[kind="secondary"] {
+            background: #f5f0e6 !important; color: #3d4f42 !important; border: 2px solid #3d4f42 !important;
         }
     """
 
@@ -234,12 +320,19 @@ def load_global_css(dark_mode: Optional[bool] = None, theme: str = "default"):
 
 
 def render_top_nav(current_page: str = ""):
-    """Barre de navigation : BioGuide + slogan, puis 3 grands boutons."""
+    """Barre de navigation : logo + BioGuide + slogan, puis 3 grands boutons."""
+    logo_src = _logo_data_url()
+    img_html = (
+        f'<img src="{logo_src}" alt="BioGuide" class="brand-logo" />'
+        if logo_src
+        else ""
+    )
     st.markdown(
         f"""
         <div style="text-align: center; margin-bottom: 24px;">
-            <h1 style="font-size: 1.75rem; font-weight: 700; color: #1F2A37; margin: 0 0 6px 0;">BioGuide</h1>
-            <p style="font-size: 0.9rem; color: #5B6B7A; margin: 0;">{APP_SLOGAN}</p>
+            {img_html}
+            <h1 class="brand-title" style="font-size: 1.75rem; font-weight: 700; margin: 0 0 6px 0;">BioGuide</h1>
+            <p class="brand-slogan" style="font-size: 0.9rem; margin: 0;">{APP_SLOGAN}</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -282,7 +375,7 @@ def render_disclaimer():
     st.divider()
     st.markdown(
         """
-        <div class="disclaimer-box" style="padding: 16px 20px; border-radius: 12px;">
+        <div class="disclaimer-box" style="padding: 16px 20px;">
         <strong>Avertissement médical</strong><br>
         Les informations proviennent de sources historiques et ne constituent pas un avis médical.
         Consultez toujours un professionnel de santé.
@@ -302,13 +395,13 @@ def render_warning(message: str, level: str = "warning"):
         }
     else:
         colors = {
-            "warning": {"bg": "#fffbeb", "border": "#F59E0B", "text": "#92400e"},
-            "danger": {"bg": "#fef2f2", "border": "#EF4444", "text": "#991b1b"},
-            "info": {"bg": "#eff6ff", "border": "#3BA4F7", "text": "#1e40af"},
+            "warning": {"bg": "#f5f0e6", "border": "#c4a574", "text": "#2d3d2f"},
+            "danger": {"bg": "#f5f0e6", "border": "#d4a5a8", "text": "#2d3d2f"},
+            "info": {"bg": "#f5f0e6", "border": "#5f8f7a", "text": "#2d3d2f"},
         }
     style = colors.get(level, colors["warning"])
     st.markdown(
-        f'<div style="background:{style["bg"]};border-left:4px solid {style["border"]};color:{style["text"]};padding:16px;border-radius:12px;margin:16px 0;">{message}</div>',
+        f'<div style="background:{style["bg"]};border:2px solid {style["border"]};color:{style["text"]};padding:16px;border-radius:16px;margin:16px 0;">{message}</div>',
         unsafe_allow_html=True,
     )
 

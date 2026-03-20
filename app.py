@@ -29,38 +29,42 @@ st.markdown(
     <div class="hero-section">
         <h1 class="hero-title">BioGuide</h1>
         <p class="hero-sub">Remèdes par les plantes</p>
-        <p class="hero-sub" style="font-size: 0.95rem; opacity: 0.85;">Deux ouvrages historiques de Gallica</p>
+        <p class="hero-sub" style="font-size: 0.95rem;">Deux ouvrages historiques de Gallica</p>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-# Summary cards
+# Bloc large « Les livres » + statistiques (HTML unique pour fond vert cohérent)
 try:
     num_passages, num_pages, num_books = get_db_stats()
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(
-            f'<div class="stat-card"><div class="stat-value">{num_passages:,}</div><div class="stat-label">Passages indexés</div></div>',
-            unsafe_allow_html=True,
-        )
-    with col2:
-        st.markdown(
-            f'<div class="stat-card"><div class="stat-value">{num_pages:,}</div><div class="stat-label">Pages</div></div>',
-            unsafe_allow_html=True,
-        )
-    with col3:
-        st.markdown(
-            f'<div class="stat-card"><div class="stat-value">{num_books}</div><div class="stat-label">Ouvrages</div></div>',
-            unsafe_allow_html=True,
-        )
+    st.markdown(
+        f"""
+        <div class="section-livres">
+            <h3 style="color:#3d4f42;margin:0 0 4px 0;font-size:1.25rem;">Les livres</h3>
+            <p style="color:#5a6f5c;font-size:0.9rem;margin:0 0 20px 0;">Aperçu du contenu indexé dans l'application.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;">
+                <div class="stat-card" style="flex:1;min-width:140px;max-width:280px;">
+                    <div class="stat-value">{num_passages:,}</div><div class="stat-label">Passages indexés</div>
+                </div>
+                <div class="stat-card" style="flex:1;min-width:140px;max-width:280px;">
+                    <div class="stat-value">{num_pages:,}</div><div class="stat-label">Pages</div>
+                </div>
+                <div class="stat-card" style="flex:1;min-width:140px;max-width:280px;">
+                    <div class="stat-value">{num_books}</div><div class="stat-label">Ouvrages</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 except Exception:
     pass
 
 st.markdown('<div class="section-spacer"></div>', unsafe_allow_html=True)
 
 st.markdown("**Commencer**")
-if st.button("Recherche avec IA", type="primary", use_container_width=True):
+if st.button("Recherche IA", type="primary", use_container_width=True):
     st.switch_page("pages/2_Recherche_avec_IA.py")
 
 render_disclaimer()

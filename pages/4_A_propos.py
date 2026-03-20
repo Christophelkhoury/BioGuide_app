@@ -15,11 +15,11 @@ load_global_css()
 render_top_nav("pages/4_A_propos.py")
 
 st.markdown("")
-# Slogan principal
+# Slogan (accent miel / bronze, harmonieux avec le vert)
 st.markdown(
     f"""
-    <div style="text-align: center; padding: 32px 24px; background: linear-gradient(135deg, rgba(59,164,247,0.1) 0%, rgba(41,199,172,0.1) 100%); border-radius: 16px; margin-bottom: 32px; border: 1px solid rgba(59,164,247,0.2);">
-        <p style="font-size: 1.5rem; font-weight: 700; color: #1F2A37; margin: 0; letter-spacing: -0.02em;">
+    <div class="bg-card" style="text-align: center; padding: 28px 24px; margin-bottom: 28px;">
+        <p class="slogan-accent" style="font-size: 1.45rem; font-weight: 700; margin: 0; letter-spacing: -0.02em;">
             {APP_SLOGAN}
         </p>
     </div>
@@ -28,32 +28,41 @@ st.markdown(
 )
 
 st.markdown("")
-st.markdown("## Notre mission")
-
 st.markdown(
     """
-    **BioGuide** a pour but d'**emprunter les anciens remèdes naturels** à la place des médicaments 
-    nocifs d'aujourd'hui. Face à une pharmacopée chimique parfois agressive, nous proposons de 
-    redécouvrir le savoir des herboristes et des médecins populaires du XIXe siècle.
-
-    - **Deux ouvrages historiques** numérisés par la BnF (Gallica) : *La santé par les plantes* 
-      de Jules Clément et *Le médecin des pauvres* du Dr Beauvillard.
-    - **Une recherche assistée par l'IA** : décrivez vos symptômes, l'assistant parcourt les 
-      textes et synthétise les remèdes proposés avec leurs sources.
-    - **Des liens directs** vers les pages Gallica pour consulter les ouvrages originaux.
-    """
+    <div class="bg-card">
+        <h2 style="margin: 0 0 12px 0;">Notre mission</h2>
+        <p style="margin: 0 0 12px 0; line-height: 1.6;">
+            <strong>BioGuide</strong> a pour but d'<strong>emprunter les anciens remèdes naturels</strong> à la place des médicaments
+            nocifs d'aujourd'hui. Face à une pharmacopée chimique parfois agressive, nous proposons de
+            redécouvrir le savoir des herboristes et des médecins populaires du XIXe siècle.
+        </p>
+        <ul style="margin: 0; padding-left: 1.25rem; line-height: 1.7;">
+            <li><strong>Deux ouvrages historiques</strong> numérisés par la BnF (Gallica) : <em>La santé par les plantes</em>
+                de Jules Clément et <em>Le médecin des pauvres</em> du Dr Beauvillard.</li>
+            <li><strong>Une recherche assistée par l'IA</strong> : décrivez vos symptômes, l'assistant parcourt les
+                textes et synthétise les remèdes proposés avec leurs sources.</li>
+            <li><strong>Des liens directs</strong> vers les pages Gallica pour consulter les ouvrages originaux.</li>
+        </ul>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 st.markdown("")
-st.markdown("## Comment ça marche ?")
-
 st.markdown(
     """
-    La recherche utilise **TF-IDF** pour retrouver les passages pertinents dans les deux livres, 
-    puis un **assistant IA** (OpenAI) pour synthétiser les résultats et les présenter de façon 
-    claire. Les informations restent historiques : consultez toujours un professionnel de santé 
-    avant d'utiliser un remède.
-    """
+    <div class="bg-card">
+        <h2 style="margin: 0 0 12px 0;">Comment ça marche ?</h2>
+        <p style="margin: 0; line-height: 1.6;">
+            La recherche utilise <strong>TF-IDF</strong> pour retrouver les passages pertinents dans les deux livres,
+            puis un <strong>assistant IA</strong> (OpenAI) pour synthétiser les résultats et les présenter de façon
+            claire. Les informations restent historiques : consultez toujours un professionnel de santé
+            avant d'utiliser un remède.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 st.markdown("")
