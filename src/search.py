@@ -13,22 +13,6 @@ import numpy as np
 
 from src.db import connect, init_fts, DB_PATH
 
-
-def dedupe_passages(passages: List[Tuple[str, int, str]]) -> List[Tuple[str, int, str]]:
-    """Deduplicate (book_id, page, text) by (book_id, page)."""
-    seen = set()
-    out: List[Tuple[str, int, str]] = []
-    for item in passages:
-        if len(item) < 3:
-            continue
-        book_id, page, text = item[0], item[1], item[2]
-        key = (book_id, page)
-        if key not in seen:
-            seen.add(key)
-            out.append((book_id, page, text))
-    return out
-
-
 # Minimum content length (after stripping metadata) to keep a passage
 _MIN_CONTENT_LEN = 60
 # Keywords that suggest a passage contains remedies/treatments (relevance bonus)

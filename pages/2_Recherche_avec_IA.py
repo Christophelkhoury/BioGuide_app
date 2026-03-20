@@ -3,7 +3,7 @@ BioGuide - Recherche avec IA (chat conversationnel)
 UI mix ancien/futur : passage des livres d'époque à l'IA moderne.
 """
 import streamlit as st
-from src.search import SearchEngine, dedupe_passages
+from src.search import SearchEngine
 from src.safety import check_red_flags, check_risk_keywords, get_red_flag_message, get_risk_notice
 from src.ui_components import (
     BOOK_INFO,
@@ -20,6 +20,22 @@ from src.assistant_llm import (
     synthesize_followup,
     synthesize_with_sources,
 )
+
+
+def _dedupe_passages(passages):
+    """Dédoublonne (livre, page, texte) par (livre, page) — local à cette page pour éviter les imports fragiles au déploiement."""
+    seen = set()
+    out = []
+    for item in passages:
+        if len(item) < 3:
+            continue
+        book_id, page, text = item[0], item[1], item[2]
+        key = (book_id, page)
+        if key not in seen:
+            seen.add(key)
+            out.append((book_id, page, text))
+    return out
+
 
 # Cache search engine - pre-warmed on page load to avoid "Running..." message
 @st.cache_resource
@@ -125,7 +141,7 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
                             for book_id, page, text, _ in results
                         ]
                         prev = passages_by_symptom.get(symptom, [])
-                        passages_by_symptom[symptom] = dedupe_passages(prev + extra)
+                        passages_by_symptom[symptom] = _dedupe_passages(prev + extra)
 
                     total_passages = sum(len(p) for p in passages_by_symptom.values())
                     if total_passages == 0:
