@@ -17,8 +17,8 @@ Application de recherche et d'assistance basée sur des ouvrages historiques de 
 
 1. **Cloner le dépôt** (avec [Git LFS](https://git-lfs.com) installé)
    ```bash
-   git clone https://github.com/Christophelkhoury/A1.git
-   cd A1
+   git clone https://github.com/Christophelkhoury/BioGuide_app.git
+   cd BioGuide_app
    git lfs pull
    ```
    Sans `git lfs pull`, vous n’avez qu’un pointeur : la base `phyto.db` ne sera pas téléchargée.
