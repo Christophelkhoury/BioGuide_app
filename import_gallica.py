@@ -1,5 +1,4 @@
-print("IMPORT START")
-
+"""Import des textes Gallica dans la base SQLite locale."""
 from lxml import html as lhtml
 import sqlite3
 
@@ -23,10 +22,12 @@ BOOKS = [
 ]
 
 def html_to_text(page_html: str) -> str:
+    """Extrait le texte brut d'une page HTML."""
     doc = lhtml.fromstring(page_html)
     return " ".join(doc.text_content().split())
 
 def main():
+    """Parcourt les ouvrages définis dans BOOKS et remplit phyto.db."""
     init_db()
     init_fts()
 

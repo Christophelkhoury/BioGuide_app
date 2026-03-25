@@ -1,10 +1,7 @@
-"""
-Safety checks and medical disclaimers.
-"""
+"""Filtrage des requêtes à risque et messages d'avertissement."""
 from typing import List, Tuple
 
 
-# Red-flag symptoms that require immediate medical attention
 RED_FLAG_KEYWORDS = [
     "douleur thoracique", "poitrine", "cœur", "cardiaque",
     "difficulté respiratoire", "essoufflement", "respiration",
@@ -29,31 +26,21 @@ RISK_KEYWORDS = [
 
 
 def check_red_flags(query: str) -> Tuple[bool, List[str]]:
-    """
-    Check if query contains red-flag symptoms.
-    
-    Returns:
-        (has_red_flags, matched_keywords)
-    """
+    """Détecte les symptômes d'urgence ; retourne (alerte, mots détectés)."""
     query_lower = query.lower()
     matched = [kw for kw in RED_FLAG_KEYWORDS if kw.lower() in query_lower]
     return len(matched) > 0, matched
 
 
 def check_risk_keywords(query: str) -> Tuple[bool, List[str]]:
-    """
-    Check if query contains sensitive keywords.
-    
-    Returns:
-        (has_risks, matched_keywords)
-    """
+    """Détecte les sujets sensibles ; retourne (risque, mots détectés)."""
     query_lower = query.lower()
     matched = [kw for kw in RISK_KEYWORDS if kw.lower() in query_lower]
     return len(matched) > 0, matched
 
 
 def get_red_flag_message(matched_keywords: List[str]) -> str:
-    """Get warning message for red flags."""
+    """Message d'alerte pour symptômes graves."""
     return (
         "**ATTENTION** : Votre recherche contient des symptômes qui peuvent indiquer "
         "une urgence médicale. Cette application ne peut pas fournir de diagnostic médical. "
@@ -62,7 +49,7 @@ def get_red_flag_message(matched_keywords: List[str]) -> str:
 
 
 def get_risk_notice(matched_keywords: List[str]) -> str:
-    """Get risk notice message."""
+    """Message d'information pour contexte à risque."""
     return (
         "**Note importante** : Votre recherche concerne des sujets sensibles (grossesse, "
         "allergies, médicaments, etc.). Les informations historiques peuvent ne pas être adaptées "

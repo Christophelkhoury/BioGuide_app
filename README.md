@@ -1,62 +1,43 @@
 # BioGuide
 
-Application de recherche et d'assistance basée sur des ouvrages historiques de remèdes par les plantes (Gallica).
+Streamlit + SQLite autour de deux livres Gallica (médecine populaire, plantes).  
+La page d’accueil résume ce qui est indexé ; une partie du site permet de poser des questions sur le fond textuel (recherche + synthèse, avec clé API dans les secrets).
 
-## Fonctionnalités
+## Contenu du dépôt
 
-- **Les Livres** — Historique des deux ouvrages et de leurs auteurs
-- **Recherche IA** — Décrivez vos symptômes, l'assistant cherche dans les ouvrages et synthétise les remèdes
-- **À propos** — Mission et méthodologie
+- `main.py` — entrée Streamlit  
+- `pages/` — les autres écrans  
+- `src/` — base de données, recherche (FTS / TF-IDF), appels au modèle de langage  
+- `import_gallica.py` — régénérer `phyto.db` (long, à lancer en local si besoin)  
+- `phyto.db` — via **Git LFS** (~450 Mo), sinon le clone n’a qu’un pointeur
 
-## Prérequis
+## Installation
 
-- Python 3.10+
-- Clé API OpenAI (pour la synthèse IA)
-
-## Installation sur un nouvel appareil
-
-1. **Cloner le dépôt** (avec [Git LFS](https://git-lfs.com) installé)
-   ```bash
-   git clone https://github.com/Christophelkhoury/BioGuide_app.git
-   cd BioGuide_app
-   git lfs pull
-   ```
-   Sans `git lfs pull`, vous n’avez qu’un pointeur : la base `phyto.db` ne sera pas téléchargée.
-
-2. **Créer un environnement virtuel**
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate   # Windows
-   # source venv/bin/activate   # Linux / macOS
-   ```
-
-3. **Installer les dépendances**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Base `phyto.db`** (~450 Mo) — fournie via **Git LFS** dans le dépôt.  
-   Pour la régénérer depuis zéro (optionnel, long) : `python import_gallica.py`
-
-5. **Configurer la clé OpenAI**
-   ```bash
-   copy .streamlit\secrets.toml.example .streamlit\secrets.toml   # Windows
-   # cp .streamlit/secrets.toml.example .streamlit/secrets.toml     # Linux/Mac
-   ```
-   Puis éditez `.streamlit/secrets.toml` et remplacez `VOTRE_CLE_ICI` par votre clé.
-
-## Lancer l'application
+Prérequis : Python 3.10+, [Git LFS](https://git-lfs.com).
 
 ```bash
-streamlit run app.py
+git clone https://github.com/Christophelkhoury/BioGuide_app.git
+cd BioGuide_app
+git lfs pull
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+copy .streamlit\secrets.toml.example .streamlit\secrets.toml
 ```
 
-L'application s'ouvre dans le navigateur (http://localhost:8501).
+Éditer `.streamlit/secrets.toml` : renseigner la clé (voir l’exemple).
 
-## Déploiement Streamlit Cloud
+Lancer :
 
-- **Ne commitez jamais** `.streamlit/secrets.toml` (déjà dans `.gitignore`).
-- Dans l’admin Streamlit → **Secrets**, ajoutez par exemple :
-  ```toml
-  OPENAI_API_KEY = "votre-cle"
-  ```
+```bash
+streamlit run main.py
+```
+
+## Streamlit Cloud
+
+Fichier principal : `main.py`.  
+Ne pas commiter `secrets.toml` (déjà ignoré) ; copier les clés dans l’onglet **Secrets** du tableau de bord Streamlit.
+
+```toml
+OPENAI_API_KEY = "…"
+```

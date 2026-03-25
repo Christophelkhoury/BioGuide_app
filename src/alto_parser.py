@@ -1,6 +1,9 @@
+"""Conversion ALTO XML vers texte linéaire."""
 from lxml import etree
 
+
 def alto_to_text(alto_xml: str) -> str:
+    """Concatène le contenu des balises String d'un document ALTO."""
     root = etree.fromstring(alto_xml.encode("utf-8", errors="ignore"))
     strings = root.xpath(".//*[local-name()='String']")
     words = []

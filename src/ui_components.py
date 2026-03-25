@@ -1,6 +1,4 @@
-"""
-BioGuide — Design nature / bien-être (CSS uniquement côté UI).
-"""
+"""Composants d'interface et styles globaux Streamlit."""
 import base64
 import re
 from pathlib import Path
@@ -8,7 +6,6 @@ from typing import Optional
 
 import streamlit as st
 
-# Design tokens (badges livres — verts nature)
 COLORS = {
     "primary": "#3d4f42",
     "secondary": "#5f8f7a",
@@ -44,21 +41,22 @@ BOOK_INFO = {
     },
 }
 
-# Slogan de l'app
 APP_SLOGAN = "Des remèdes d'hier, une santé sans chimie."
 
 
 def get_gallica_page_url(book_id: str, page: int) -> str:
+    """Retourne l'URL Gallica pour une page donnée d'un ouvrage."""
     ark = BOOK_INFO.get(book_id, {}).get("ark", "")
     return f"https://gallica.bnf.fr/ark:/12148/{ark}/f{page}"
 
 
 def _get_dark_mode() -> bool:
+    """Indique si le mode sombre est actif dans la session."""
     return st.session_state.get("dark_mode", False) if "dark_mode" in st.session_state else False
 
 
 def _parchment_bg_url() -> Optional[str]:
-    """Image assets/bioguide-bg.png ou .jpg en data URL pour CSS (Streamlit)."""
+    """Charge le fond parchemin optionnel en data URL pour le CSS."""
     base = Path(__file__).resolve().parent.parent / "assets"
     for name, mime in (("bioguide-bg.png", "image/png"), ("bioguide-bg.jpg", "image/jpeg"), ("bioguide-bg.jpeg", "image/jpeg")):
         path = base / name
@@ -73,7 +71,7 @@ def _parchment_bg_url() -> Optional[str]:
 
 
 def _logo_data_url() -> Optional[str]:
-    """Logo assets/logo.png en data URL pour l'en-tête (toutes les pages)."""
+    """Charge le logo en data URL pour l'en-tête."""
     path = Path(__file__).resolve().parent.parent / "assets" / "logo.png"
     if not path.is_file():
         return None
@@ -86,7 +84,7 @@ def _logo_data_url() -> Optional[str]:
 
 
 def load_global_css(dark_mode: Optional[bool] = None, theme: str = "default"):
-    """theme: default (accueil / à propos), rustic (Livres), hybrid (Recherche IA)."""
+    """Injecte les styles CSS (thèmes default, rustic, hybrid)."""
     if dark_mode is None:
         dark_mode = _get_dark_mode()
 
@@ -338,7 +336,7 @@ def render_top_nav(current_page: str = ""):
         unsafe_allow_html=True,
     )
     nav_items = [
-        ("Les Livres", "pages/1_Livres.py"),
+        ("Les livres", "pages/1_Livres.py"),
         ("Recherche IA", "pages/2_Recherche_avec_IA.py"),
         ("À propos", "pages/4_A_propos.py"),
     ]
@@ -358,6 +356,7 @@ def render_top_nav(current_page: str = ""):
 
 
 def render_sidebar_nav(pages: list):
+    """Affiche la navigation latérale (non utilisée si la barre est masquée)."""
     with st.sidebar:
         st.markdown("## BioGuide")
         st.caption("Remèdes par les plantes")
@@ -372,6 +371,7 @@ def render_sidebar_nav(pages: list):
 
 
 def render_disclaimer():
+    """Affiche l'avertissement médical en bas de page."""
     st.divider()
     st.markdown(
         """
@@ -386,6 +386,7 @@ def render_disclaimer():
 
 
 def render_warning(message: str, level: str = "warning"):
+    """Affiche un encadré d'alerte (warning, danger ou info)."""
     dark = _get_dark_mode()
     if dark:
         colors = {
@@ -407,6 +408,7 @@ def render_warning(message: str, level: str = "warning"):
 
 
 def render_book_badge(book_id: str) -> str:
+    """Retourne le HTML du badge coloré pour un identifiant d'ouvrage."""
     if book_id not in BOOK_INFO:
         return f"`{book_id}`"
     info = BOOK_INFO[book_id]
@@ -414,6 +416,7 @@ def render_book_badge(book_id: str) -> str:
 
 
 def render_citation(book_id: str, page: int) -> str:
+    """Retourne le HTML de la citation (badge + numéro de page)."""
     badge = render_book_badge(book_id)
     return f'{badge} <span class="citation-page">p. {page}</span>'
 
@@ -426,6 +429,7 @@ _GALLICA_OCR_DISCLAIMER = (
 
 
 def clean_text_for_display(text: str) -> str:
+    """Nettoie le texte OCR / JSON pour l'affichage."""
     if not text or not isinstance(text, str):
         return ""
     text = re.sub(r"<br\s*/?>", " ", text, flags=re.IGNORECASE)
@@ -441,6 +445,7 @@ def clean_text_for_display(text: str) -> str:
 
 
 def render_result_card(passage: str, book_id: str, page: int, score: Optional[float] = None, show_score: bool = False, max_length: int = 300, result_index: Optional[int] = None):
+    """Affiche une carte de résultat de recherche."""
     cleaned = clean_text_for_display(passage)
     st.markdown(render_citation(book_id, page), unsafe_allow_html=True)
     if show_score and score is not None:

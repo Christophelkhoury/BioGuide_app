@@ -1,7 +1,4 @@
-"""
-BioGuide - Les Livres
-Design rustique, historique des deux ouvrages et de leurs auteurs.
-"""
+"""Page « Les livres » : présentation des ouvrages et des auteurs."""
 import streamlit as st
 from src.ui_components import (
     BOOK_INFO,
@@ -15,11 +12,10 @@ st.set_page_config(page_title="BioGuide — Les Livres", layout="wide", initial_
 load_global_css(theme="rustic")
 render_top_nav("pages/1_Livres.py")
 
-# Bandeau rustique (vert doux + bordure)
 st.markdown(
     """
     <div class="rustic-banner" style="text-align: center;">
-        <div class="rustic-banner-title">Les Livres</div>
+        <div class="rustic-banner-title">Les livres</div>
         <p class="rustic-banner-sub" style="margin: 0;">Deux trésors de la médecine populaire du XIXe siècle</p>
     </div>
     """,

@@ -1,7 +1,4 @@
-"""
-BioGuide - Recherche avec IA (chat conversationnel)
-UI mix ancien/futur : passage des livres d'époque à l'IA moderne.
-"""
+"""Page de recherche conversationnelle dans les ouvrages indexés."""
 import streamlit as st
 from src.search import SearchEngine
 from src.safety import check_red_flags, check_risk_keywords, get_red_flag_message, get_risk_notice
@@ -23,7 +20,7 @@ from src.assistant_llm import (
 
 
 def _dedupe_passages(passages):
-    """Dédoublonne (livre, page, texte) par (livre, page) — local à cette page pour éviter les imports fragiles au déploiement."""
+    """Dédoublonne les passages par couple (livre, page)."""
     seen = set()
     out = []
     for item in passages:
@@ -37,9 +34,9 @@ def _dedupe_passages(passages):
     return out
 
 
-# Cache search engine - pre-warmed on page load to avoid "Running..." message
 @st.cache_resource
 def get_cached_search_engine():
+    """Construit et met en cache le moteur de recherche TF-IDF."""
     engine = SearchEngine()
     engine.build_index(None)
     return engine
@@ -67,19 +64,15 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Initialize chat history
 if "chat_messages" not in st.session_state:
     st.session_state.chat_messages = []
 
-# Pre-warm search engine cache (runs once, avoids "Running get_cached_search_engine" during chat)
 get_cached_search_engine()
 
-# Recherche additionnelle pour questions de suivi (préparation, posologie, etc.)
 _USAGE_SEARCH_SUFFIX = (
     "préparation infusion décoction teinture posologie emploi utilisation dose prendre appliquer macération"
 )
 
-# Display chat history
 for msg in st.session_state.chat_messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
@@ -89,12 +82,9 @@ for msg in st.session_state.chat_messages:
                 st.markdown(f'- <a href="{s["url"]}" target="_blank" rel="noopener">{s["label"]}</a>', unsafe_allow_html=True)
             st.caption("Si un lien ne s'ouvre pas, Gallica peut être temporairement lent. Réessayez ou copiez l'URL.")
 
-# Chat input - barre fixe en bas (style ChatGPT)
 if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question...", width=640):
-    # Add user message
     st.session_state.chat_messages.append({"role": "user", "content": prompt})
 
-    # Safety: red flags
     has_red_flags, red_flag_keywords = check_red_flags(prompt)
     if has_red_flags:
         warning_content = get_red_flag_message(red_flag_keywords) + "\n\n**Cette application ne peut pas fournir de diagnostic médical.**\n\nPour des symptômes graves ou urgents, consultez immédiatement :\n- **15** (SAMU) pour les urgences médicales\n- **112** (numéro d'urgence européen)"
@@ -115,7 +105,6 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
 
     has_risks, _ = check_risk_keywords(prompt)
 
-    # Process with LLM
     with st.chat_message("assistant"):
         if has_risks:
             render_warning(get_risk_notice([]), level="info")
@@ -127,7 +116,6 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
 
                 if followup:
                     is_followup_turn = True
-                    # Question de suivi : réutiliser le contexte + chercher des passages orientés usage
                     symptoms = list(ctx["symptoms"])
                     passages_by_symptom = {
                         k: list(v) for k, v in ctx["passages_by_symptom"].items()
@@ -171,14 +159,11 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
                         get_gallica_page_url,
                     )
                 else:
-                    # Nouvelle question (pas un suivi) : oublier l'ancien contexte symptômes/remèdes
                     st.session_state.pop("chat_search_context", None)
-                    # 1. Extract symptoms (may fail if no API credits)
                     symptoms = extract_symptoms(prompt)
                     if not symptoms:
                         symptoms = [prompt.strip()]
 
-                    # 2. Search for each symptom
                     engine = get_cached_search_engine()
                     passages_by_symptom = {}
                     for symptom in symptoms:
@@ -188,7 +173,6 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
                             for book_id, page, text, _ in results
                         ]
 
-                    # 3. Check if any results
                     total_passages = sum(len(p) for p in passages_by_symptom.values())
                     if total_passages == 0:
                         no_remedy_msg = (
@@ -203,7 +187,6 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
                         })
                         st.rerun()
 
-                    # 4. Synthesize with sources
                     response, api_error = synthesize_with_sources(
                         symptoms,
                         passages_by_symptom,
@@ -214,8 +197,7 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
                     st.markdown(response)
                     content_to_store = response
                 else:
-                    # API failed - afficher l'erreur précise + extraits en fallback
-                    st.error(f"**L'assistant IA n'a pas pu répondre.** {api_error or 'Erreur inconnue.'}")
+                    st.error(f"**L'assistant n'a pas pu répondre.** {api_error or 'Erreur inconnue.'}")
                     st.markdown("### Extraits trouvés")
                     for symptom in symptoms:
                         passages = passages_by_symptom.get(symptom, [])
@@ -228,11 +210,10 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
                                 st.caption(text[:200] + "..." if len(text) > 200 else text)
                             st.markdown("")
                     content_to_store = (
-                        f"L'assistant IA n'a pas pu répondre. {api_error or 'Erreur inconnue.'} "
+                        f"L'assistant n'a pas pu répondre. {api_error or 'Erreur inconnue.'} "
                         "Extraits trouvés affichés ci-dessus."
                     )
 
-                # 5. Sources Gallica : uniquement pour la première réponse (symptôme), pas pour le suivi
                 sources = []
                 if not is_followup_turn:
                     seen = set()
@@ -253,7 +234,6 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
                     "sources": sources,
                 })
 
-                # Contexte pour les questions de suivi (comment utiliser, préparer, etc.)
                 if response and total_passages > 0:
                     st.session_state["chat_search_context"] = {
                         "symptoms": list(symptoms),
@@ -272,7 +252,6 @@ if prompt := st.chat_input("Décrivez vos symptômes ou posez votre question..."
 
     st.rerun()
 
-# Empty state
 if not st.session_state.chat_messages:
     st.markdown("")
     st.markdown("Décrivez vos symptômes dans la barre de saisie en bas de l'écran.")

@@ -1,14 +1,9 @@
-"""
-Optional LLM integration to reformulate search results into a clear, contextual answer.
-Uses an OpenAI-compatible API (OpenAI, Azure, or local endpoint).
-"""
+"""Synthèse de textes à partir des extraits d'ouvrages (service distant)."""
 import json
 import os
 import re
 from typing import List, Optional, Tuple
 
-# --- Détection question de suivi (usage / préparation) vs nouveau symptôme ---
-# Inclut fautes courantes (ex. « consome ») et synonymes (boire, ingérer…)
 _FOLLOWUP_USAGE_RE = re.compile(
     r"\b(comment|comment je|comment on|comment les|comment la|comment l')\b.*\b("
     r"utiliser|prendre|employer|appliquer|préparer|faire|poser|doser|"
@@ -23,7 +18,6 @@ _FOLLOWUP_USAGE_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Question sur des plantes / remèdes déjà cités (sans verbe exact du bloc ci-dessus)
 _FOLLOWUP_LOOSE_Q_RE = re.compile(
     r"\b(comment|quel|quelle|quels|quelles|combien)\b",
     re.IGNORECASE,
@@ -43,10 +37,7 @@ _NEW_SYMPTOM_RE = re.compile(
 
 
 def is_usage_followup_question(message: str, has_prior_search_context: bool) -> bool:
-    """
-    True if the user likely asks how to use / prepare remedies from the previous answer,
-    and not a brand-new symptom description.
-    """
+    """Indique si le message est une question de précision sur des remèdes déjà proposés."""
     if not has_prior_search_context or not (message or "").strip():
         return False
     text = message.strip()
@@ -54,7 +45,6 @@ def is_usage_followup_question(message: str, has_prior_search_context: bool) -> 
         return False
     if _FOLLOWUP_USAGE_RE.search(text):
         return True
-    # Phrases du type « comment … romarin / sauge » sans verbe listé plus haut
     if (
         len(text) <= 520
         and _FOLLOWUP_LOOSE_Q_RE.search(text)
@@ -64,7 +54,6 @@ def is_usage_followup_question(message: str, has_prior_search_context: bool) -> 
     return False
 
 
-# Passage format: (book_id, page, cleaned_text); source_label = "Titre du livre, p. N"
 SYSTEM_PROMPT = """Tu es un assistant qui présente des remèdes historiques à base de plantes, à partir d'extraits d'ouvrages français numérisés (Gallica).
 Règles strictes :
 - Utilise UNIQUEMENT les informations contenues dans les extraits fournis. N'invente rien.
@@ -83,7 +72,7 @@ Fournis une réponse reformulée et bien expliquée, en t'appuyant uniquement su
 
 
 def _get_api_key() -> Optional[str]:
-    """Get API key from environment or Streamlit secrets."""
+    """Lit la clé API dans l'environnement ou les secrets Streamlit."""
     key = os.environ.get("OPENAI_API_KEY") or ""
     if not key:
         try:
@@ -98,7 +87,7 @@ def _get_api_key() -> Optional[str]:
 
 
 def _format_excerpts(passages: List[tuple], source_labels: List[str]) -> str:
-    """Format (book_id, page, text) list with source labels for the prompt."""
+    """Construit le bloc de citations numérotées pour le prompt."""
     lines = []
     for i, ((book_id, page, text), label) in enumerate(zip(passages, source_labels), 1):
         lines.append(f"[Extrait {i} — {label}]\n{text.strip()}\n")
@@ -112,19 +101,7 @@ def reformulate_answer(
     model: str = "gpt-4o-mini",
     api_base: Optional[str] = None,
 ) -> Optional[str]:
-    """
-    Call an OpenAI-compatible LLM to reformulate and explain the answer from the given passages.
-
-    Args:
-        query: User question.
-        passages: List of (book_id, page, cleaned_text).
-        source_labels: List of display strings like "La santé par les plantes, p. 42".
-        model: Model name (e.g. gpt-4o-mini, gpt-4o).
-        api_base: Optional API base URL for compatible endpoints.
-
-    Returns:
-        Reformulated answer text, or None if API is unavailable or call fails.
-    """
+    """Reformule une réponse à partir des passages et de la question utilisateur."""
     if not passages or len(passages) != len(source_labels):
         return None
 
@@ -158,11 +135,10 @@ def reformulate_answer(
 
 
 def is_llm_available() -> bool:
-    """Return True if an API key is configured for the LLM."""
+    """Vérifie si une clé API est configurée."""
     return _get_api_key() is not None
 
 
-# --- Symptom extraction (for chat mode) ---
 EXTRACT_SYMPTOMS_SYSTEM = """Tu es un assistant médical qui extrait les symptômes ou problèmes de santé d'un message utilisateur.
 Retourne UNIQUEMENT un tableau JSON de chaînes, une par symptôme. Exemple: ["mal de tête", "fièvre"].
 Si le message ne décrit aucun symptôme clair, retourne ["message"] pour traiter le message entier comme une requête.
@@ -173,10 +149,7 @@ Liste des symptômes ou problèmes de santé (JSON array):"""
 
 
 def extract_symptoms(user_message: str, model: str = "gpt-4o-mini", api_base: Optional[str] = None) -> List[str]:
-    """
-    Extract individual symptoms from a user message.
-    Returns a list of symptom strings to search for independently.
-    """
+    """Extrait les symptômes ou thèmes de recherche à partir du message."""
     api_key = _get_api_key()
     if not api_key or not (user_message or "").strip():
         return [user_message.strip()] if user_message else []
@@ -200,7 +173,6 @@ def extract_symptoms(user_message: str, model: str = "gpt-4o-mini", api_base: Op
         if not response.choices or not response.choices[0].message.content:
             return [user_message.strip()]
         raw = response.choices[0].message.content.strip()
-        # Handle markdown code blocks
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
@@ -213,7 +185,6 @@ def extract_symptoms(user_message: str, model: str = "gpt-4o-mini", api_base: Op
         return [user_message.strip()]
 
 
-# --- Synthesis with sources and Gallica links ---
 SYNTHESIS_SYSTEM = """Tu es un assistant qui présente des remèdes historiques à base de plantes, à partir d'extraits d'ouvrages français numérisés (Gallica).
 
 Règles strictes:
@@ -236,7 +207,6 @@ Produis une réponse qui:
 3. Termine par une synthèse combinant les solutions
 """
 
-# --- Synthèse pour une question de suivi (mode d'emploi, préparation, etc.) ---
 FOLLOWUP_SYSTEM = """Tu es un assistant conversationnel qui répond à une question de précision sur des remèdes déjà évoqués (les sources détaillées ont été données dans le message précédent).
 
 Règles strictes:
@@ -268,7 +238,7 @@ def _format_excerpts_with_links(
     passages_by_symptom: dict,
     get_url_fn,
 ) -> str:
-    """Format excerpts grouped by symptom, with Gallica URLs."""
+    """Formate les extraits par symptôme avec liens Gallica."""
     blocks = []
     for symptom in symptoms:
         passages = passages_by_symptom.get(symptom, [])
@@ -289,7 +259,7 @@ def _format_excerpts_for_followup(
     passages_by_symptom: dict,
     max_chars_per_excerpt: int = 450,
 ) -> str:
-    """Excerpts for follow-up prompts: no page numbers or URLs (reduces citation leakage)."""
+    """Formate les extraits pour un message de suivi (sans pagination ni URL)."""
     blocks = []
     for symptom in symptoms:
         passages = passages_by_symptom.get(symptom, [])
@@ -305,7 +275,7 @@ def _format_excerpts_for_followup(
 
 
 def _scrub_references_for_followup_context(text: str) -> str:
-    """Remove URLs and obvious page refs from prior assistant text used as context."""
+    """Retire URL et références de page du contexte précédent."""
     if not text:
         return ""
     t = re.sub(r"https?://[^\s\])>]+", "", text)
@@ -317,7 +287,7 @@ def _scrub_references_for_followup_context(text: str) -> str:
 
 
 def _scrub_followup_answer_output(text: str) -> str:
-    """Remove URLs, liens et références de page que le modèle pourrait encore produire."""
+    """Nettoie la réponse de suivi (URL, pages, sources)."""
     if not text:
         return text
     t = re.sub(r"https?://[^\s\])>]+", "", text)
@@ -333,7 +303,7 @@ def _scrub_followup_answer_output(text: str) -> str:
 
 
 def _get_api_error_message(exc: Exception) -> str:
-    """Convert OpenAI API exception to a user-friendly message."""
+    """Transforme une exception API en message compréhensible."""
     err_str = str(exc).lower()
     if "insufficient_quota" in err_str or "quota" in err_str or "credits" in err_str:
         return "Crédits OpenAI insuffisants ou quota dépassé. Rechargez votre compte sur platform.openai.com"
@@ -353,12 +323,7 @@ def synthesize_with_sources(
     model: str = "gpt-4o-mini",
     api_base: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[str]]:
-    """
-    Synthesize a response from passages grouped by symptom, with Gallica links.
-
-    Returns:
-        (response_text, error_message). On success: (text, None). On failure: (None, error_msg).
-    """
+    """Produit une synthèse à partir des passages par symptôme ; retourne (texte, erreur)."""
     api_key = _get_api_key()
     if not api_key:
         return None, "Clé API OpenAI non configurée. Ajoutez OPENAI_API_KEY dans .streamlit/secrets.toml"
@@ -395,7 +360,6 @@ def synthesize_with_sources(
         return None, "Réponse vide de l'API."
     except Exception as e:
         err_msg = _get_api_error_message(e)
-        # Fallback: essayer gpt-3.5-turbo si gpt-4o-mini échoue
         if model == "gpt-4o-mini":
             try:
                 kwargs = {"api_key": api_key}
@@ -428,9 +392,7 @@ def synthesize_followup(
     model: str = "gpt-4o-mini",
     api_base: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[str]]:
-    """
-    Answer a follow-up question (how to use, prepare, etc.) using excerpts + short prior context.
-    """
+    """Synthétise une réponse de suivi à partir des extraits et du fil de conversation."""
     api_key = _get_api_key()
     if not api_key:
         return None, "Clé API OpenAI non configurée. Ajoutez OPENAI_API_KEY dans .streamlit/secrets.toml"

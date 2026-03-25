@@ -1,12 +1,12 @@
-"""
-BioGuide - Accueil
-"""
+"""Point d'entrée Streamlit — page d'accueil BioGuide."""
 import streamlit as st
 from src.db import connect
 from src.ui_components import render_disclaimer, load_global_css, render_top_nav
 
+
 @st.cache_data
 def get_db_stats():
+    """Retourne le nombre de passages, de pages distinctes et d'ouvrages en base."""
     conn = connect()
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*) FROM passages")
@@ -23,7 +23,6 @@ st.set_page_config(page_title="BioGuide", layout="wide", initial_sidebar_state="
 load_global_css()
 render_top_nav("")
 
-# Hero
 st.markdown(
     """
     <div class="hero-section">
@@ -35,7 +34,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Bloc large « Les livres » + statistiques (HTML unique pour fond vert cohérent)
 try:
     num_passages, num_pages, num_books = get_db_stats()
     st.markdown(

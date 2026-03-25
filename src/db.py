@@ -1,3 +1,4 @@
+"""Connexion SQLite et schéma des livres et passages indexés."""
 import sqlite3
 from pathlib import Path
 
@@ -24,12 +25,16 @@ CREATE TABLE IF NOT EXISTS passages (
 CREATE INDEX IF NOT EXISTS idx_passages_book_page ON passages(book_id, page);
 """
 
+
 def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
+    """Ouvre une connexion à la base avec clés étrangères activées."""
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys = ON;")
     return conn
 
+
 def init_db(db_path: Path = DB_PATH) -> None:
+    """Crée les tables books et passages si elles n'existent pas."""
     conn = connect(db_path)
     conn.executescript(SCHEMA)
     conn.commit()
@@ -44,7 +49,9 @@ def upsert_book(book_id: str, title: str, ark: str, source_url: str, db_path: Pa
     conn.commit()
     conn.close()
 
+
 def insert_passage(book_id: str, page: int, text: str, db_path: Path = DB_PATH) -> None:
+    """Ajoute un passage de texte pour une page donnée."""
     conn = connect(db_path)
     conn.execute(
         "INSERT INTO passages(book_id, page, text) VALUES (?,?,?)",
@@ -54,8 +61,6 @@ def insert_passage(book_id: str, page: int, text: str, db_path: Path = DB_PATH) 
     conn.close()
 
 
-# FTS5 for full-text search (find all passages containing a word)
-# content='passages' + content_rowid so FTS rowid = passage_id; only "text" is indexed.
 FTS5_SCHEMA = """
 CREATE VIRTUAL TABLE IF NOT EXISTS passages_fts USING fts5(text, content='passages', content_rowid='passage_id', tokenize='unicode61');
 
@@ -73,7 +78,7 @@ END;
 
 
 def init_fts(db_path: Path = DB_PATH) -> None:
-    """Create FTS5 table and triggers; populate from existing passages if FTS is empty."""
+    """Initialise la table FTS5 et synchronise les passages existants."""
     conn = connect(db_path)
     conn.executescript(FTS5_SCHEMA)
     cur = conn.cursor()

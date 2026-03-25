@@ -1,11 +1,10 @@
-"""
-Script de test pour vérifier que la clé OpenAI fonctionne.
-Lancez : python test_openai.py
-"""
+"""Vérifie que la clé API (secrets ou variable d'environnement) permet un appel minimal."""
 import os
 import sys
 
+
 def get_key():
+    """Lit OPENAI_API_KEY depuis l'environnement ou .streamlit/secrets.toml."""
     key = os.environ.get("OPENAI_API_KEY", "").strip()
     if key:
         return key
@@ -29,6 +28,7 @@ def get_key():
     return None
 
 def main():
+    """Exécute un appel minimal au service distant pour valider la configuration."""
     key = get_key()
     if not key:
         print("ERREUR: Clé API non trouvée.")

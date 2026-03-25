@@ -1,7 +1,4 @@
-"""
-BioGuide - À propos
-But de l'app : emprunter les anciens remèdes naturels à la place des médicaments nocifs.
-"""
+"""Page « À propos » : mission et méthodologie de BioGuide."""
 import streamlit as st
 from src.ui_components import render_disclaimer, load_global_css, render_top_nav, APP_SLOGAN
 
@@ -15,7 +12,6 @@ load_global_css()
 render_top_nav("pages/4_A_propos.py")
 
 st.markdown("")
-# Slogan (accent miel / bronze, harmonieux avec le vert)
 st.markdown(
     f"""
     <div class="bg-card" style="text-align: center; padding: 28px 24px; margin-bottom: 28px;">
