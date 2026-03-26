@@ -35,7 +35,8 @@ streamlit run main.py
 
 ## Streamlit Cloud
 
-Fichier principal : `main.py`.  
+Fichier principal : `main.py` (recommandé dans les paramètres de l’app).  
+Si le tableau de bord est encore sur `app.py`, le dépôt inclut un `app.py` mince qui charge `main.py`.  
 Ne pas commiter `secrets.toml` (déjà ignoré) ; copier les clés dans l’onglet **Secrets** du tableau de bord Streamlit.
 
 ```toml
