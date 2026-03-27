@@ -20,11 +20,11 @@ o	Tia Kahil
 o	Alaa Hamdan
 
 ## Rôle de chacun:
-o	**Christophe**: dévéloppement principal de l’application comme la structure du site, gestion des pages et intégration avec Stramlit.
+o	**Christophe**: dévéloppement principal de l’application comme la structure du site, gestion des pages, intégration avec Stramlit et organisation visuelle du site.
 
-o	**Tia**: implémentation de l’IA comme le traitement des symptômes, la génération de réponses, l’exploitation des données des livres.
+o	**Tia**: implémentation de l’IA comme le traitement des symptômes, la génération de réponses, l’exploitation des données des livres et montage de la vidéo.
 
-o	**Alaa**: design et expérience utilisateur comme l’interface, l’ergonomie et l’organisation visuelle du site.
+o	**Alaa**: codage python d'une fonction qui utilise un systeme de mots clés pour retrouver les remèdes correspondants, design et expérience utilisateur comme l’interface et l’ergonomie.
 
 ## Répartition des tâches:
 La documentation du projet a été fait collectivement, en répartissant des parties à rédiger puis une mise en commun.
@@ -46,7 +46,7 @@ Une étape particulièrement importante et complexe de notre projet a été la r
 Pour cela, nous avons récupéré le contenu des livres grace a la version numérique du site gallica , puis nous avons utilisé Python pour traiter ces données.
 Ensuite, nous avons du mettre en place un travail de nettoyage et de structuration du texte : avec la suppression des éléments inutiles, organisation des informations, et identification des parties importantes (symptômes, remèdes…).
 
-Après, nous avons transformé ces données en une base de données manipulable en Python, sous forme de structures permettant d’associer chaque symptôme à un ou plusieurs remèdes naturels.
+Après, nous avons transformé ces données en une base de données manipulable en Python sous forme de structures de données SQL permettant de stocker les remèdes et les symptomes. Cela nous permet d'associer chaque symptôme à un ou plusieurs remèdes naturels et d'effectuer des recherches plus rapides et efficaces dans notre application.
 
 Cette étape a été essentielle, car elle a permis de passer d’un contenu brut à une base exploitable par notre programme, et constitue le fondement de toute la logique de notre application.
 
