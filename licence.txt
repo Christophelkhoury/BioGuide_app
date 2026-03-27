@@ -1,0 +1,22 @@
+BioGuide — informations de licence
+==================================
+
+Ce dépôt applique deux licences libres distinctes :
+
+1) Code source (fichiers .py, configuration technique, scripts, etc.)
+   Licence : GNU General Public License version 3 ou ultérieure (GPL v3+).
+   Texte intégral : https://www.gnu.org/licenses/gpl-3.0.html
+
+2) Textes et contenus rédactionnels (documentation, présentations, contenus
+   des pages affichés comme texte éditorial lorsque applicable)
+   Licence : Creative Commons Attribution — Partage dans les mêmes conditions
+   4.0 International (CC BY-SA 4.0).
+   Texte intégral : https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+---
+
+Les projets sont placés sous licence libre afin de pouvoir être testés,
+utilisés, adaptés et améliorés par l’ensemble de la communauté.
+
+Pour toute question sur la compatibilité des réutilisations (code + texte),
+se référer aux textes officiels des licences ci-dessus.
