@@ -82,9 +82,3 @@ Néanmoins, certaines limites existent, notamment : une base de données encore 
 Ce projet nous a permis de développer de nombreuses compétences comme la structuration et l’exploitation de bases de données, le traitement de texte, et surtout d’améliorer nos compétences en python en apprenant une nouvelle façon de coder un peu différente de celle qu’on a pu voir en classe.
 
 Nous avons également intégré une démarche d’inclusion dans notre projet en proposant une interface simple, accessible à tous, en valorisant des solutions naturelles souvent utilisées dans différentes cultures, et en proposant une alternative accessible dans des contextes où l’accès aux médicaments peut être limité ou évitée.
-
-Utilisation de l’intelligence artificielle :
-
-Nous avons intégré une intelligence artificielle dans notre projet afin d’améliorer l’interaction entre l’utilisateur et l’application, en permettant de formuler des réponses plus naturelles. Pour cela, nous avons utilisé une API d’OpenAI, en générant une clé que nous avons ensuite intégrée à notre code Python. Cette IA permet  d’analyser les requêtes des utilisateurs et de formuler des réponses plus naturelles et compréhensibles. L’intelligence artificielle vient ainsi compléter notre système de recherche basé sur les mots-clés, en rendant l’expérience plus fluide et interactive.
-
-Par ailleurs, nous avons rencontré des difficultés lors de la mise en place de la liaison entre notre système de recherche et l’agent conversationnel, notamment en raison de l’utilisation de bibliothèques Python avec lesquels nous n’étions pas familier. Nous avons donc eu recours à une intelligence artificielle comme outil d’aide, afin de mieux comprendre ces nouvelles notions et nous accompagner dans l’implémentation de cette partie du code. Cette aide nous a permis de surmonter les difficultés tout en restant acteurs du développement et en comprenant le fonctionnement des solutions mises en place.
