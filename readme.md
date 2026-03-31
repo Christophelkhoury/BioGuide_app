@@ -8,10 +8,11 @@ La page d’accueil résume ce qui est indexé ; une partie du site permet de po
 - `présentation.md` — présentation du projet  
 - `licence.txt` — licences du code et des textes  
 - `requirements.txt` — dépendances Python  
-- `sources/` — code source (point d’entrée : `sources/main.py`)  
-- `sources/pages/` — pages Streamlit  
+- `sources/` — code source (dont `sources/main.py`, programme principal)  
 - `sources/src/` — base de données, recherche (FTS / TF-IDF), appels au modèle de langage  
 - `sources/import_gallica.py` — régénérer la base (long, à lancer en local si besoin)  
+- `pages/` — pages multipage Streamlit (au même niveau que le fichier d’entrée, exigence Streamlit)  
+- `app.py` — entrée à la racine pour **Streamlit Cloud** / `streamlit run` (charge `sources/main.py`)  
 - `data/phyto.db` — base SQLite (via **Git LFS**, ~450 Mo ; sans LFS le clone n’a qu’un pointeur)  
 - `test/` — script de test optionnel de la clé API  
 
@@ -39,15 +40,17 @@ copy .streamlit\secrets.toml.example .streamlit\secrets.toml
 Lancer l’application **depuis la racine du dépôt** :
 
 ```bash
-streamlit run sources/main.py
+streamlit run app.py
 ```
+
+(`app.py` charge la logique d’accueil dans `sources/main.py` ; le dossier `pages/` est à la racine pour que Streamlit détecte le multipage.)
 
 (Sous Linux/macOS, adaptez l’activation du venv : `source venv/bin/activate`.)
 
 ## Streamlit Cloud
 
-Fichier principal recommandé : `sources/main.py`.  
-Si le tableau de bord pointe encore vers `app.py`, utiliser `sources/app.py` (délègue à `main.py`).  
+- Fichier principal : **`app.py`** (à la racine), ou **`sources/main.py`** si tu déplaces aussi `pages/` dans `sources/` (non recommandé ici).  
+- Avec la config par défaut **`app.py`**, le dépôt fournit ce fichier à la racine.  
 Ne pas commiter `secrets.toml` (déjà ignoré) ; copier les clés dans l’onglet **Secrets** du tableau de bord Streamlit.
 
 ```toml
