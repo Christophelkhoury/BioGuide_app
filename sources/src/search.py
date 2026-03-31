@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Moteur de recherche TF-IDF sur les passages indexés."""
 import re
 import sqlite3

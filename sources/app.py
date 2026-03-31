@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Entrée Streamlit Cloud — délègue à main.py (point d'entrée réel)."""
 from pathlib import Path
 import runpy

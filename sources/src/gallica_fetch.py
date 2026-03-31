@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Téléchargement des vues « texte + image » Gallica."""
 import requests
 

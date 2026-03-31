@@ -1,8 +1,16 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Connexion SQLite et schéma des livres et passages indexés."""
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path("phyto.db")
+
+def repo_root() -> Path:
+    """Racine du dépôt (dossier parent de ``sources/``)."""
+    return Path(__file__).resolve().parent.parent.parent
+
+
+DB_PATH = repo_root() / "data" / "phyto.db"
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;

@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Point d'entrée Streamlit — page d'accueil BioGuide."""
 import streamlit as st
 from src.db import connect

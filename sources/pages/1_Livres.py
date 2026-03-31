@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Page « Les livres » : présentation des ouvrages et des auteurs."""
 import streamlit as st
 from src.ui_components import (

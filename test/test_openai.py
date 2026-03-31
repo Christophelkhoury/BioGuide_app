@@ -1,6 +1,14 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Vérifie que la clé API (secrets ou variable d'environnement) permet un appel minimal."""
 import os
 import sys
+from pathlib import Path
+
+
+def _repo_root() -> Path:
+    """Racine du dépôt (parent de ``test/``)."""
+    return Path(__file__).resolve().parent.parent
 
 
 def get_key():
@@ -8,8 +16,7 @@ def get_key():
     key = os.environ.get("OPENAI_API_KEY", "").strip()
     if key:
         return key
-    base = os.path.dirname(os.path.abspath(__file__))
-    secrets_path = os.path.join(base, ".streamlit", "secrets.toml")
+    secrets_path = _repo_root() / ".streamlit" / "secrets.toml"
     if os.path.exists(secrets_path):
         with open(secrets_path, encoding="utf-8") as f:
             for line in f:

@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Page de recherche conversationnelle dans les ouvrages indexés."""
 import streamlit as st
 from src.search import SearchEngine

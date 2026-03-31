@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Synthèse de textes à partir des extraits d'ouvrages (service distant)."""
 import json
 import os

@@ -1,8 +1,9 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Import des textes Gallica dans la base SQLite locale."""
 from lxml import html as lhtml
-import sqlite3
 
-from src.db import init_db, init_fts, upsert_book
+from src.db import connect, init_db, init_fts, upsert_book
 from src.clean_text import clean_ocr_text, split_into_passages
 from src.gallica_fetch import fetch_texteimage_html, get_last_page
 
@@ -31,7 +32,7 @@ def main():
     init_db()
     init_fts()
 
-    conn = sqlite3.connect("phyto.db")
+    conn = connect()
     cur = conn.cursor()
 
     for b in BOOKS:

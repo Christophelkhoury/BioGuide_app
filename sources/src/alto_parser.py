@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Conversion ALTO XML vers texte linéaire."""
 from lxml import etree
 

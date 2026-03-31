@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Page « À propos » : mission et méthodologie de BioGuide."""
 import streamlit as st
 from src.ui_components import render_disclaimer, load_global_css, render_top_nav, APP_SLOGAN

@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Filtrage des requêtes à risque et messages d'avertissement."""
 from typing import List, Tuple
 

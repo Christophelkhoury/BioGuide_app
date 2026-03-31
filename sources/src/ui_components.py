@@ -1,3 +1,5 @@
+#Projet : BioGuide
+#Auteurs : Christophe El Khoury, Tia Kahil, Alaa Hamdan
 """Composants d'interface et styles globaux Streamlit."""
 import base64
 import re
@@ -5,6 +7,8 @@ from pathlib import Path
 from typing import Optional
 
 import streamlit as st
+
+from src.db import repo_root
 
 COLORS = {
     "primary": "#3d4f42",
@@ -57,7 +61,7 @@ def _get_dark_mode() -> bool:
 
 def _parchment_bg_url() -> Optional[str]:
     """Charge le fond parchemin optionnel en data URL pour le CSS."""
-    base = Path(__file__).resolve().parent.parent / "assets"
+    base = repo_root() / "assets"
     for name, mime in (("bioguide-bg.png", "image/png"), ("bioguide-bg.jpg", "image/jpeg"), ("bioguide-bg.jpeg", "image/jpeg")):
         path = base / name
         if path.is_file():
@@ -72,7 +76,7 @@ def _parchment_bg_url() -> Optional[str]:
 
 def _logo_data_url() -> Optional[str]:
     """Charge le logo en data URL pour l'en-tête."""
-    path = Path(__file__).resolve().parent.parent / "assets" / "logo.png"
+    path = repo_root() / "assets" / "logo.png"
     if not path.is_file():
         return None
     try:
